@@ -17,7 +17,8 @@ spotify.search({ type: queryTypes.join(','), query: argv._[0], limit: 1 }, (err,
  
   console.log('')
   queryTypes.forEach((item) => {
-    console.log(chalk.red(item), data[item + 's'].items[0])
+    var first = data[item + 's'].items[0]
+    console.log(chalk.red(item), first.name, chalk.green(first.uri))
   })
   console.log('')
 
