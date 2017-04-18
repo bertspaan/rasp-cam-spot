@@ -11,6 +11,10 @@ if (!fs.existsSync(path.join(__dirname, KEY_FILENAME))) {
   process.exit(1)
 }
 
+if (!argv._.length) {
+  console.error(chalk.red(`Please specify the location of an image file!`))
+}
+
 const visionClient = vision({
   projectId: 'rasp-cam-spot',
   keyFilename: 'rasp-cam-spot.key.json'
