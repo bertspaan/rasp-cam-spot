@@ -1,15 +1,44 @@
+const fs = require('fs')
+const path = require('path')
+const argv = require('minimist')(process.argv.slice(2))
 const vision = require('@google-cloud/vision')
+const chalk = require('chalk')
 
-// var visionClient = vision({
-//   projectId: 'grape-spaceship-123',
-//   keyFilename: '/path/to/keyfile.json'
-// });
+const KEY_FILENAME = 'rasp-cam-spot.key.json'
 
-// // Read the text from an image.
-// visionClient.detectText('./image.jpg', function(err, text) {
-//   // text = [
-//   //   'This was text found in the image',
-//   //   'This was more text found in the image'
-//   // ]
-// });
+if (!fs.existsSync(path.join(__dirname, KEY_FILENAME))) {
+  console.error(chalk.red(`Please put your Google Vision API credentials in ./${KEY_FILENAME}`))
+  process.exit(1)
+}
 
+const visionClient = vision({
+  projectId: 'rasp-cam-spot',
+  keyFilename: 'rasp-cam-spot.key.json'
+})
+
+const types = [
+  'similar'
+]
+
+visionClient.detect(argv._[0], types, function(err, detections, apiResponse) {
+  if (err) {
+    console.error(err.message)
+    return
+  }
+
+  const webResponses = apiResponse.responses
+    .filter((response) => response.webDetection)
+
+  if (webResponses.length) {
+    const printEntity = (entity) => entity.description
+
+    const webDetection = webResponses[0].webDetection
+    const firstEntity = webDetection.webEntities[0]
+    console.log(printEntity(firstEntity))
+
+    webDetection.webEntities
+      .slice(1, 5)
+      .map(printEntity)
+      .map((entity) => console.log(chalk.gray(entity)))
+  }
+})
