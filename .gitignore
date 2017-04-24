@@ -1,4 +1,4 @@
 test-images
 node_modules
-*.key.json
+credentials/*.json
 

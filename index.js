@@ -3,11 +3,13 @@ const path = require('path')
 const argv = require('minimist')(process.argv.slice(2))
 const vision = require('@google-cloud/vision')
 const chalk = require('chalk')
+const got = require('got')
 
-const KEY_FILENAME = 'rasp-cam-spot.key.json'
+const KEY_FILENAME = path.join(__dirname, 'credentials', 'google.key.json')
 
-if (!fs.existsSync(path.join(__dirname, KEY_FILENAME))) {
-  console.error(chalk.red(`Please put your Google Vision API credentials in ./${KEY_FILENAME}`))
+
+if (!fs.existsSync(KEY_FILENAME)) {
+  console.error(chalk.red(`Please put your Google Vision API credentials in ${KEY_FILENAME}`))
   process.exit(1)
 }
 
@@ -17,7 +19,7 @@ if (!argv._.length) {
 
 const visionClient = vision({
   projectId: 'rasp-cam-spot',
-  keyFilename: 'rasp-cam-spot.key.json'
+  keyFilename: KEY_FILENAME
 })
 
 const types = [
@@ -44,5 +46,16 @@ visionClient.detect(argv._[0], types, function(err, detections, apiResponse) {
       .slice(1, 5)
       .map(printEntity)
       .map((entity) => console.log(chalk.gray(entity)))
+
+    const album = webDetection.webEntities[0].description
+    got(`http://localhost:7337/search?q=${album}`, {
+      json: true
+    })
+      .then((response) => {
+        console.log(response.body)
+      })
+      .catch((err) => {
+        console.error(err)
+      })
   }
 })
